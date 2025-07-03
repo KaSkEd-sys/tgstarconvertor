@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Telegram Stars Конвертер</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+      color: white;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: auto;
+      min-height: 100vh;
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .box {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      margin-bottom: 30px;
+    }
+
+    input, select {
+      margin: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      width: 200px;
+      text-align: center;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .donate {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .donate h2 {
+      margin-bottom: 15px;
+    }
+
+    .donate a {
+      display: inline-block;
+      background-color: #00bcd4;
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+
+    .donate a:hover {
+      background-color: #0097a7;
+    }
+
+    /* Зал славы */
+    .hall-of-fame {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(45deg, #ff0080, #7928ca, #2afadf, #00ffaa);
+      background-size: 300% 300%;
+      animation: gradientFlow 6s ease infinite;
+      padding: 15px 20px;
+      border-radius: 12px;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      z-index: 999;
+      font-size: 14px;
+      max-width: 250px;
+    }
+
+    .hall-of-fame h3 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .hall-of-fame ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .hall-of-fame li {
+      margin: 4px 0;
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+  </style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div class="container">
+  <div class="box">
+    <h1>Конвертер Telegram Stars</h1>
+    <input id="starsInput" type="number" placeholder="Введите количество Stars" />
+    <br>
+    <select id="currencySelect">
+      <option value="uah">Гривны (₴)</option>
+      <option value="rub">Рубли (₽)</option>
+      <option value="usd">Доллары ($)</option>
+      <option value="kzt">Тенге (₸)</option>
+    </select>
+    <div class="result" id="result">Введите значение</div>
+  </div>
+
+  <div class="donate">
+    <h2>Поддержать автора 💖</h2>
+    <a href="http://t.me/send?start=IVHYsDnooz9Q" target="_blank">💸 Донат через CryptoBot</a>
+    <a href="https://t.me/@KACKA_CHOC" target="_blank">🌟 Донат Stars в Telegram (подарком)</a>
+    <h2>Доп. Информация</h2>
+    <a href="https://t.me/+9FuDygWmeJ1mZDdi" target="_blank">🎤 Канал с новостями</a>
+    <a href="https://t.me/@kacka_ls_bot" target="_blank">🎺 Поддержка</a>
+  </div>
+</div>
+
+<!-- Зал славы -->
+<div class="hall-of-fame">
+  <h3>🏆 Зал славы</h3>
+  <ul>
+    <li>Здесь Ничего нет :(</li>
+    <li>Здесь Ничего нет :(</li>
+    <li>Здесь Ничего нет :(</li>
+  </ul>
+</div>
+
+<script>
+  const input = document.getElementById("starsInput");
+  const select = document.getElementById("currencySelect");
+  const result = document.getElementById("result");
+
+  const starsToUah = 0.88;
+  const rates = {
+    uah: 1,
+    rub: 2.3,
+    usd: 0.025,
+    kzt: 12.0
+  };
+
+  const symbols = {
+    uah: "₴",
+    rub: "₽",
+    usd: "$",
+    kzt: "₸"
+  };
+
+  function updateResult() {
+    const stars = parseFloat(input.value);
+    const currency = select.value;
+
+    if (isNaN(stars) || stars <= 0) {
+      result.textContent = "Введите значение";
+      return;
+    }
+
+    const uah = stars * starsToUah;
+    const converted = uah * rates[currency];
+    result.textContent = `${stars} Telegram Stars ≈ ${converted.toFixed(2)} ${symbols[currency]}`;
+  }
+
+  input.addEventListener("input", updateResult);
+  select.addEventListener("change", updateResult);
+
+  // Анимация фона
+  const canvas = document.getElementById("bg");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let circles = [];
+  for (let i = 0; i < 40; i++) {
+    circles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 8 + 2,
+      dx: (Math.random() - 0.5),
+      dy: (Math.random() - 0.5),
+      color: `rgba(255,255,255,${Math.random() * 0.2})`
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let c of circles) {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+      ctx.fillStyle = c.color;
+      ctx.fill();
+      c.x += c.dx;
+      c.y += c.dy;
+
+      if (c.x < 0 || c.x > canvas.width) c.dx *= -1;
+      if (c.y < 0 || c.y > canvas.height) c.dy *= -1;
+    }
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+
+  window.addEventListener("resize", () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
+</body>
+</html>
